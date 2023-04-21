@@ -43,7 +43,7 @@ const db = knex({
     host: 'localhost',
     port: '3306',
     user: 'root',
-    password: 'cksals1014',
+    password: '*',
     database: 'board',
     pool: {
       min: 0,
