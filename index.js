@@ -376,14 +376,14 @@ app.post("/api/email", async(req,res)=>{
   const email = req.body.email;
 
   const isEmail = await db.select('id').from('users').where('email',email);
-
+  console.log(isEmail);
   if(isEmail[0]){
     res.json({
       success: false,
       message: '존재하는 이메일 입니다.'
     })
   }
-  
+
   let rand = "";
   for(let i = 0; i < 6; ++i){
     const a = Math.floor(Math.random() * 10);
