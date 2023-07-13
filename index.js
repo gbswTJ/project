@@ -376,46 +376,43 @@ app.post("/api/email", async(req,res)=>{
   const email = req.body.email;
 
   const isEmail = await db.select('id').from('users').where('email',email);
-  console.log(isEmail);
   if(isEmail[0]){
     res.json({
       success: false,
       message: '존재하는 이메일 입니다.'
     })
+  }else{
+    let rand = "";
+    for(let i = 0; i < 6; ++i){
+      const a = Math.floor(Math.random() * 10);
+    
+      rand += `${a}`;
+    };
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: 'nullproject2023@gmail.com', 
+        pass: 'bdqfrcwsxkaasxfo'
+      }
+    });
+    const mailOptions = {
+      from: 'nullproject2023@gmail.com',
+      to: `${req.body.email}`,
+      subject: '이메일 인증번호 발송',
+      html: Emailer(rand)
+    };
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(error);
+      } else {
+        return res.json({
+          success: true,
+          message: "이메일이 성공적으로 전송되었습니다.",
+          email: rand
+        });
+      }});
   }
-
-  let rand = "";
-  for(let i = 0; i < 6; ++i){
-    const a = Math.floor(Math.random() * 10);
-  
-    rand += `${a}`;
-  };
-  const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-      user: 'nullproject2023@gmail.com', 
-      pass: 'bdqfrcwsxkaasxfo'
-    }
-  });
-  const mailOptions = {
-    from: 'nullproject2023@gmail.com',
-    to: `${req.body.email}`,
-    subject: '이메일 인증번호 발송',
-    html: Emailer(rand)
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error(error);
-    } else {
-      return res.json({
-        success: true,
-        message: "이메일이 성공적으로 전송되었습니다.",
-        email: rand
-      });
-    }
-  });
-  
 })
 
 app.post("/api/findpw", async(req,res)=>{
