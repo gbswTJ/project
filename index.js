@@ -879,6 +879,12 @@ app.post('/api/admin/members', async(req, res) => {
 });
 app.post('/api/reports', async(req,res)=>{
   const {user_id,id,isPost} = req.body;
+  if(!user_id){
+    return res.json({
+      success: false,
+      message: '로그인후 이용가능합니다'
+    })
+  }
   if(isPost === 1){
     await db.insert({
       user_id: user_id,
