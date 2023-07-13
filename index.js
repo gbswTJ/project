@@ -155,10 +155,10 @@ app.post("/api/board/write", async (req, res) => {
         });
       }
 
-      const lowercaseTags = tags.map(tag => tag.toLowerCase());
+      const lowercaseTags = tags.map(tag => tag);
 
       const existingTags = await db.select('name').from('tags').whereIn('name', lowercaseTags);
-      const existingTagNames = existingTags.map(tag => tag.name.toLowerCase());
+      const existingTagNames = existingTags.map(tag => tag.name);
 
       const newTags = lowercaseTags.filter(tag => !existingTagNames.includes(tag));
 
@@ -265,30 +265,65 @@ app.post("/api/board/update", async (req, res) => {
           });
 
         // 태그 업데이트 로직 시작
+        const uppercaseTags = tags.map(tag => tag.toUpperCase());
+
         const currentTags = await db
-          .select('name')
+          .select('id', 'name')
           .from('tags')
-          .whereIn('name', tags);
+          .whereIn('name', uppercaseTags);
 
         const existingTagNames = currentTags.map(tag => tag.name);
-        const addedTags = tags.filter(tag => !existingTagNames.includes(tag));
-        const removedTags = existingTagNames.filter(tag => !tags.includes(tag));
+        const addedTags = uppercaseTags.filter(tag => !existingTagNames.includes(tag));
+        const removedTags = existingTagNames.filter(tag => !uppercaseTags.includes(tag));
 
-        await Promise.all(
-          addedTags.map(async tag => {
-            const [tagId] = await db('tags').insert({ name: tag });
-            await db('post_tags').insert({ post_id: req.session.boardID, tag_id: tagId });
-          })
-        );
+        // 새로운 태그 추가
+        if (addedTags.length > 0) {
+          const newTagIds = await db.insert(addedTags.map(name => ({ name }))).into('tags');
+          const newTagsWithIds = addedTags.map((name, index) => ({
+            id: newTagIds[index],
+            name
+          }));
+          currentTags.push(...newTagsWithIds);
+        }
 
-        await db('post_tags')
-          .whereIn('tag_id', function () {
-            this.select('id')
-              .from('tags')
-              .whereIn('name', removedTags);
-          })
-          .where('post_id', req.session.boardID)
-          .del();
+        const postTags = currentTags.filter(tag => uppercaseTags.includes(tag.name));
+
+        const postId = req.session.boardID;
+
+        const existingPostTags = await db
+          .select('tag_id')
+          .from('post_tags')
+          .where('post_id', '=', postId);
+
+        const existingTagIds = existingPostTags.map(tag => tag.tag_id);
+
+        const postTagData = postTags.map(tag => ({
+          tag_id: tag.id,
+          post_id: postId
+        }));
+
+        const tagIdsToDelete = existingTagIds.filter(tagId => !postTagData.some(tag => tag.tag_id === tagId));
+
+        // 기존 태그 삭제
+        if (tagIdsToDelete.length > 0) {
+          await db('post_tags')
+            .whereIn('tag_id', tagIdsToDelete)
+            .where('post_id', postId)
+            .del();
+        }
+
+        const tagIdsToInsert = postTagData
+          .filter(tag => !existingTagIds.includes(tag.tag_id))
+          .map(tag => ({
+            tag_id: tag.tag_id,
+            post_id: postId
+          }));
+
+        // 새로운 태그 추가
+        if (tagIdsToInsert.length > 0) {
+          await db('post_tags').insert(tagIdsToInsert);
+        }
+
         // 태그 업데이트 로직 종료
 
         return res.json({
@@ -302,10 +337,11 @@ app.post("/api/board/update", async (req, res) => {
   } else {
     return res.json({
       success: false,
-      message: '로그인후 이용가능합니다.'
+      message: '로그인 후 이용 가능합니다.'
     });
   }
 });
+
 
 
 app.post("/api/board/delete", async (req,res) =>{
@@ -378,7 +414,7 @@ app.post("/api/email", async(req,res)=>{
   const isEmail = await db.select("*").from("users").where("email", email)
 
   if(isEmail.length == 0){
-    
+
     let rand = "";
     for(let i = 0; i < 6; ++i){
       const a = Math.floor(Math.random() * 10);
@@ -406,7 +442,8 @@ app.post("/api/email", async(req,res)=>{
         return res.json({
           success: true,
           message: "이메일이 성공적으로 전송되었습니다.",
-          email: rand
+          email: rand,
+          isEmail
         });
       }});
 
