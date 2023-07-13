@@ -377,12 +377,8 @@ app.post("/api/email", async(req,res)=>{
   
   const isEmail = await db.select("*").from("users").where("email", email)
 
-  if(isEmail.length > 0){
-    return res.json({
-      success: false,
-      message: '존재하는 이메일 입니다.'
-    })
-  }else{
+  if(isEmail.length == 0){
+    
     let rand = "";
     for(let i = 0; i < 6; ++i){
       const a = Math.floor(Math.random() * 10);
@@ -413,6 +409,12 @@ app.post("/api/email", async(req,res)=>{
           email: rand
         });
       }});
+
+  }else{
+    return res.json({
+      success: false,
+      message: '존재하는 이메일 입니다.'
+    })
   }
 })
 
