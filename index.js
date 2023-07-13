@@ -378,7 +378,7 @@ app.post("/api/email", async(req,res)=>{
   const isEmail = await db.select("*").from("users").where("email", email)
 
   if(isEmail.length > 0){
-    res.json({
+    return res.json({
       success: false,
       message: '존재하는 이메일 입니다.'
     })
