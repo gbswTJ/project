@@ -373,6 +373,16 @@ app.post("/api/board/good", async (req,res) => {
 });
 
 app.post("/api/email", async(req,res)=>{
+  const email = req.body.email;
+
+  const isEmail = await db.select('id').from('users').where('email',email);
+
+  if(isEmail[0]){
+    res.json({
+      success: false,
+      message: '존재하는 이메일 입니다.'
+    })
+  }
   let rand = "";
   for(let i = 0; i < 6; ++i){
     const a = Math.floor(Math.random() * 10);
@@ -435,6 +445,14 @@ app.post("/api/register",async(req,res) => {
   const password = req.body.pw;
   const name = req.body.name;
   const email = req.body.email;
+
+    if(!username || !password || !name || !email){
+      return res.json({
+        success: false,
+        message: '다시입력해주세요' 
+      })
+    }
+
   const chkID = await db.select("*").from("users").where("username", username);
 
   if(chkID.length == 0){
@@ -769,18 +787,26 @@ app.post('/api/inquiry',async (req,res)=>{
   const user_id = req.body.id;
   const message = req.body.message;
   const title = req.body.title;
-  await db.insert({
-    title: title,
-    content: message,
-    user_id: user_id
-  })
-  .into('inquiry')
-  .where('user_id',user_id);
 
-  res.json({
-    success: true,
-    message: "등록완료 되었습니다."
-  })
+  if(user_id){    
+    await db.insert({
+      title: title,
+      content: message,
+      user_id: user_id
+    })
+    .into('inquiry')
+    .where('user_id',user_id);
+  
+    res.json({
+      success: true,
+      message: "등록완료 되었습니다."
+    })
+  }else{
+    res.json({
+      success: false,
+      message: '로그인후 이용가능합니다'
+    })
+  }
 });
 
 app.post('/api/admin',async(req,res)=>{
