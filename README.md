@@ -18,12 +18,21 @@ https://youtu.be/UtOINPVN0wg
 
 저희 이름은 NULL팀이고
 팀원은
+
+
 팀장: [김찬민](https://github.com/choipaco) 총괄,백엔드
 
 팀원: [김성훈](https://github.com/coaadasd), 프론트엔드
+
+
 [김주오](https://github.com/bwhy0315), 프론트엔드
+
+
 [서창현](https://github.com/chZzang), 서버관리,백엔드
+
+
 [이혜성](https://github.com/asteroid-J) 프론트엔드
+
 입니다.
 
 이 사이트는 프로젝트를 만든 것을 올려서 자랑하는 사이트입니다.
